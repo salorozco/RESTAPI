@@ -9,7 +9,14 @@ use Chatter\Models\Message;
 use Chatter\Middleware\Logging as ChatterLogging;
 use Chatter\Middleware\Authentication as ChatterAuth;
 
-$app = new \Slim\App();
+$configuration = [
+    'settings' => [
+        'displayErrorDetails' => true,
+    ],
+];
+
+$c = new \Slim\Container($configuration);
+$app = new \Slim\App($c);
 $app->add(new ChatterAuth());
 $app->add(new ChatterLogging());
 
@@ -33,11 +40,11 @@ $app->post('/messages', function ($request, $response, $args) {
     $_message = $request->getParsedBodyParam('message', '');
    
     $message = new Message();
-    echo $message;
+   
 
     $message->body = $_message;
     $message->user_id = 1;
-    print_r($message);
+    $message->image_url = "one.jpg";
     $message->save();
      
 
@@ -48,6 +55,19 @@ $app->post('/messages', function ($request, $response, $args) {
     } else {
         return $response->withStatus(400);
     }
+});
+
+$app->delete('/messages/{message_id}', function ($request, $response, $args) {
+   $message = Message::find($args['message_id']);
+   $message->delete();
+
+   if($message->exists)
+   {
+    return $response->withStatus(400);
+   }else
+        {
+            return $response->withStatus(204);
+        }
 });
 
 // Run app
